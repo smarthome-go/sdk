@@ -24,4 +24,17 @@ func TestInit(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, c.Init("test", "test"))
 	assert.Equal(t, c.SessionCookie.Name, "session")
+	assert.True(t, c.ready)
+
+	c2, err := New(ts.URL, AuthMethodNone)
+	assert.NoError(t, err)
+	assert.NoError(t, c2.Init("test", "test"))
+	assert.Equal(t, &http.Cookie{}, c2.SessionCookie)
+	assert.True(t, c.ready)
+
+	ts.Close()
+	c3, err := New("http://not-reachable.local", AuthMethodNone)
+	assert.NoError(t, err)
+	assert.EqualError(t, c3.Init("", ""), ErrConnFailed.Error())
+	assert.Error(t, c3.Init("", ""))
 }

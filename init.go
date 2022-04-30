@@ -16,17 +16,19 @@ func New(smarthomeURL string, authMethod AuthMethod) (*Connection, error) {
 		return nil, ErrInvalidURL
 	}
 	return &Connection{
-		SmarthomeURL: u,
-		AuthMethod:   authMethod,
+		SmarthomeURL:  u,
+		AuthMethod:    authMethod,
+		SessionCookie: &http.Cookie{},
 	}, nil
 }
 
 // If the authentication mode is set to `AuthMethodNone`, both arguments can be set to nil
 // Otherwise, username and password are required to login
 func (c *Connection) Init(username string, password string) error {
+
 	u := c.SmarthomeURL
 	u.Path = "health"
-
+	// Check if the URL is working
 	res, err := http.Get(u.String())
 	if err != nil {
 		return ErrConnFailed
@@ -34,7 +36,6 @@ func (c *Connection) Init(username string, password string) error {
 	if res.StatusCode == http.StatusServiceUnavailable {
 		return ErrServiceUnavailable
 	}
-
 	if c.AuthMethod == AuthMethodNone {
 		c.ready = true
 		return nil
@@ -46,7 +47,6 @@ func (c *Connection) Init(username string, password string) error {
 		return err
 	}
 	c.SessionCookie = cookie
-
 	c.ready = true
 	return nil
 }
