@@ -11,7 +11,7 @@ import (
 // Creates a new connection
 // First argument specifies the base URL of the target Smarthome-server
 // Second argument specifies how to handle authentication
-func New(smarthomeURL string, authMethod AuthMethod) (*Connection, error) {
+func NewConnection(smarthomeURL string, authMethod AuthMethod) (*Connection, error) {
 	u, err := url.Parse(smarthomeURL)
 	if err != nil {
 		return nil, ErrInvalidURL
@@ -25,33 +25,50 @@ func New(smarthomeURL string, authMethod AuthMethod) (*Connection, error) {
 
 // If the authentication mode is set to `AuthMethodNone`, both arguments can be set to nil
 // Otherwise, username and password are required to login
-func (c *Connection) Init(username string, password string) error {
+func (c *Connection) Connect(username string, password string) error {
+	c.Username = username
+	c.Password = password
 
-	u := c.SmarthomeURL
-	u.Path = "health"
-	// Check if the URL is working
-	res, err := http.Get(u.String())
+	status, err := c.HealthCheck()
 	if err != nil {
-		return ErrConnFailed
+		return err
 	}
-	if res.StatusCode == http.StatusServiceUnavailable {
+	// Check if the healthcheck failed to an extend that authentication will not be possible
+	if status == StatusDegraded || status == StatusUnknown {
 		return ErrServiceUnavailable
 	}
+	// If the connection does not use authentication, it can be marked as ready
 	if c.AuthMethod == AuthMethodNone {
 		c.ready = true
 		return nil
 	}
-	// If authentication is set to either `AuthMethodCookie` or `AuthMethodQuery`
-	// A login request is sent in order to validate the provided credentials
-	cookie, err := c.doLogin()
-	if err != nil {
-		return err
+	// If the authentication mode is set to `AuthMethodQuery`, validate the user's credentials and mark the connection as ready
+	if c.AuthMethod == AuthMethodQuery {
+		_, err := c.doLogin()
+		if err != nil {
+			return err
+		}
+		c.ready = true
+		return nil
 	}
-	c.SessionCookie = cookie
-	c.ready = true
+	// If the authentication mode is set to `AuthMethodCookie`, validate the user's credentials and save the cookie
+	if c.AuthMethod == AuthMethodCookie {
+		cookie, err := c.doLogin()
+		if err != nil {
+			return err
+		}
+		c.SessionCookie = cookie
+		c.ready = true
+		return nil
+	}
+	// Unreachable
 	return nil
 }
 
+// Used internally to send a login request
+// When the authentication mode is set to `AuthMethodCookie`, the response cookie is saved
+// However, for `AuthMethodQuery`, it serves the purpose of validating the provided credentials beforehand
+// If the authentication mode is sey set to `AuthMethodNone`, the function call is omitted
 func (c *Connection) doLogin() (*http.Cookie, error) {
 	u := c.SmarthomeURL
 	u.Path = "/api/login"
@@ -66,14 +83,11 @@ func (c *Connection) doLogin() (*http.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	r, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
-
 	client := &http.Client{}
-
 	res, err := client.Do(r)
 	if err != nil {
 		return nil, err
