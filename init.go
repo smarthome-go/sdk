@@ -3,6 +3,7 @@ package smarthome_sdk
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -93,6 +94,6 @@ func (c *Connection) doLogin() (*http.Cookie, error) {
 	case 503:
 		return nil, ErrServiceUnavailable
 	default:
-		return nil, ErrUnknown
+		return nil, fmt.Errorf("unknown response code: %s", res.Status)
 	}
 }
