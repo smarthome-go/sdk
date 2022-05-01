@@ -33,6 +33,5 @@ func (c *Connection) HealthCheck() (status HealthStatus, err error) {
 	case 503:
 		return StatusDegraded, nil
 	}
-
 	return StatusUnknown, fmt.Errorf("unknown response code: %s", res.Status)
 }

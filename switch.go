@@ -59,6 +59,45 @@ func (c *Connection) GetPersonalSwitches() (switches []Switch, err error) {
 	return nil, fmt.Errorf("unknown response code: %s", res.Status)
 }
 
+// Returns a list containing all switches of the target instance
+/** Errors
+- nil
+- ErrServiceUnavailable
+- ErrReadResponseBody
+- ErrConnFailed
+- ErrNotInitialized
+- PrepareRequest errors
+*/
+func (c *Connection) GetAllSwitches() (switches []Switch, err error) {
+	if !c.ready {
+		return nil, ErrNotInitialized
+	}
+	req, err := c.prepareRequest("/api/switch/list/all", Get, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, ErrConnFailed
+	}
+	switch res.StatusCode {
+	case 200:
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return nil, ErrReadResponseBody
+		}
+		var parsedBody []Switch
+		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
+			return nil, ErrReadResponseBody
+		}
+		return parsedBody, nil
+	case 503:
+		return nil, ErrServiceUnavailable
+	}
+	return nil, fmt.Errorf("unknown response code: %s", res.Status)
+}
+
 // Sends a power request to Smarthome
 // Only switch to which the user has permission to will work
 /** Errors
