@@ -15,4 +15,5 @@ var (
 	ErrReadResponseBody    = errors.New("could not read body from response")
 	ErrPermissionDenied    = errors.New("no permission to access this ressource")
 	ErrInvalidSwitch       = errors.New("invalid switch id: no such switch exists")
+	ErrUnprocessableEntity = errors.New("unprocessable entity: invalid or conflicting data")
 )

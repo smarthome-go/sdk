@@ -32,6 +32,27 @@ type HomescriptResponse struct {
 	Errors   []HomescriptError `json:"error"`
 }
 
+// Represents a Homescript entity
+type Homescript struct {
+	Id                  string `json:"id"`
+	Owner               string `json:"owner"`
+	Name                string `json:"name"`
+	Description         string `json:"description"`
+	QuickActionsEnabled bool   `json:"quickActionsEnabled"`
+	SchedulerEnabled    bool   `json:"schedulerEnabled"`
+	Code                string `json:"code"`
+}
+
+// Used for creating a new script or modifying an existing one
+type HomescriptRequest struct {
+	Id                  string `json:"id"`
+	Name                string `json:"name"`
+	Description         string `json:"description"`
+	QuickActionsEnabled bool   `json:"quickActionsEnabled"`
+	SchedulerEnabled    bool   `json:"schedulerEnabled"`
+	Code                string `json:"code"`
+}
+
 // Executes a string of homescript code on the Smarthome-server
 // Returns a Homescript-response and an error
 // The error is meant to indicate a failure of communication, not a failure of execution
@@ -87,4 +108,123 @@ func (c *Connection) RunHomescript(code string, timeout time.Duration) (response
 	}
 	return HomescriptResponse{}, fmt.Errorf("unknown response code: %s", res.Status)
 
+}
+
+// Creates a new Homescript which is owned by the current user
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- ErrUnprocessableEntity (conflicting id / invalid data)
+- Unknown
+*/
+func (c *Connection) CreateHomescript(data HomescriptRequest) error {
+	if !c.ready {
+		return ErrNotInitialized
+	}
+	req, err := c.prepareRequest("/api/homescript/add", Post, data)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return ErrConnFailed
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 401:
+		return ErrInvalidCredentials
+	case 422:
+		return ErrUnprocessableEntity
+	case 403:
+		return ErrPermissionDenied
+	}
+	return fmt.Errorf("unknown response code: %s", res.Status)
+}
+
+// Modifies an existing Homescript which is owned by the current user
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- ErrUnprocessableEntity (invalid id / in valid data)
+- Unknown
+*/
+func (c *Connection) ModifyHomescript(data HomescriptRequest) error {
+	if !c.ready {
+		return ErrNotInitialized
+	}
+	req, err := c.prepareRequest("/api/homescript/modify", Put, data)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return ErrConnFailed
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 401:
+		return ErrInvalidCredentials
+	case 422:
+		return ErrUnprocessableEntity
+	case 403:
+		return ErrPermissionDenied
+	}
+	return fmt.Errorf("unknown response code: %s", res.Status)
+}
+
+// Deletes an existing Homescript which is owned by the current user
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- ErrUnprocessableEntity (invalid id)
+- Unknown
+*/
+func (c *Connection) DeleteHomescript(id string) error {
+	if !c.ready {
+		return ErrNotInitialized
+	}
+	req, err := c.prepareRequest("/api/homescript/delete", Delete, struct {
+		Id string `json:"id"`
+	}{id})
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return ErrConnFailed
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 401:
+		return ErrInvalidCredentials
+	case 422:
+		return ErrUnprocessableEntity
+	case 403:
+		return ErrPermissionDenied
+	}
+	return fmt.Errorf("unknown response code: %s", res.Status)
 }
