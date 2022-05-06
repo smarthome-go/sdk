@@ -1,4 +1,4 @@
-module github.com/MikMuellerDev/smarthome_sdk
+module github.com/smarthome-go/sdk
 
 go 1.18
 

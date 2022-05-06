@@ -1,4 +1,4 @@
-package smarthome_sdk
+package sdk
 
 import (
 	"encoding/json"
