@@ -228,3 +228,50 @@ func (c *Connection) DeleteHomescript(id string) error {
 	}
 	return fmt.Errorf("unknown response code: %s", res.Status)
 }
+
+// Returns the metadata of a given homescript which is owned by the current use3r
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- ErrUnprocessableEntity (invalid id)
+- Unknown
+*/
+func (c *Connection) GetHomescript(id string) (Homescript, error) {
+	if !c.ready {
+		return Homescript{}, ErrNotInitialized
+	}
+	req, err := c.prepareRequest(fmt.Sprintf("/api/homescript/get/%s", id), Get, nil)
+	if err != nil {
+		return Homescript{}, err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return Homescript{}, ErrConnFailed
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return Homescript{}, ErrReadResponseBody
+		}
+		var parsedBody Homescript
+		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
+			return Homescript{}, ErrReadResponseBody
+		}
+		return parsedBody, nil
+	case 401:
+		return Homescript{}, ErrInvalidCredentials
+	case 422:
+		return Homescript{}, ErrUnprocessableEntity
+	case 403:
+		return Homescript{}, ErrPermissionDenied
+	}
+	return Homescript{}, fmt.Errorf("unknown response code: %s", res.Status)
+}
