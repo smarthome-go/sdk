@@ -34,8 +34,12 @@ type HomescriptResponse struct {
 
 // Represents a Homescript entity
 type Homescript struct {
+	Owner string         `json:"owner"`
+	Data  HomescriptData `json:"data"`
+}
+
+type HomescriptData struct {
 	Id                  string `json:"id"`
-	Owner               string `json:"owner"`
 	Name                string `json:"name"`
 	Description         string `json:"description"`
 	QuickActionsEnabled bool   `json:"quickActionsEnabled"`
