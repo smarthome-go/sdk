@@ -41,6 +41,7 @@ type Homescript struct {
 	QuickActionsEnabled bool   `json:"quickActionsEnabled"`
 	SchedulerEnabled    bool   `json:"schedulerEnabled"`
 	Code                string `json:"code"`
+	MDIcon              string `json:"mdIcon"`
 }
 
 // Used for creating a new script or modifying an existing one
@@ -51,6 +52,7 @@ type HomescriptRequest struct {
 	QuickActionsEnabled bool   `json:"quickActionsEnabled"`
 	SchedulerEnabled    bool   `json:"schedulerEnabled"`
 	Code                string `json:"code"`
+	MDIcon              string `json:"mdIcon"`
 }
 
 // Executes a string of homescript code on the Smarthome-server
