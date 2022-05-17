@@ -235,7 +235,7 @@ func (c *Connection) DeleteHomescript(id string) error {
 	return fmt.Errorf("unknown response code: %s", res.Status)
 }
 
-// Returns the metadata of a given homescript which is owned by the current use3r
+// Returns the metadata of a given homescript which is owned by the current user
 /** Errors
 - nil
 - ErrNotInitialized
@@ -280,4 +280,50 @@ func (c *Connection) GetHomescript(id string) (Homescript, error) {
 		return Homescript{}, ErrPermissionDenied
 	}
 	return Homescript{}, fmt.Errorf("unknown response code: %s", res.Status)
+}
+
+// Returns a slice of Homescripts
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- Unknown
+*/
+func (c *Connection) ListHomescript() ([]Homescript, error) {
+	if !c.ready {
+		return nil, ErrNotInitialized
+	}
+	req, err := c.prepareRequest("/api/homescript/list/personal", Get, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, ErrConnFailed
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return nil, ErrReadResponseBody
+		}
+		var parsedBody []Homescript
+		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
+			return nil, ErrReadResponseBody
+		}
+		return parsedBody, nil
+	case 401:
+		return nil, ErrInvalidCredentials
+	case 422:
+		return nil, ErrUnprocessableEntity
+	case 403:
+		return nil, ErrPermissionDenied
+	}
+	return nil, fmt.Errorf("unknown response code: %s", res.Status)
 }
