@@ -205,6 +205,7 @@ func (c *Connection) ModifyHomescript(data HomescriptRequest) error {
 - ErrPermissionDenied
 - PrepareRequest errors
 - ErrUnprocessableEntity (invalid id)
+- ErrConflict (dependent automations)
 - Unknown
 */
 func (c *Connection) DeleteHomescript(id string) error {
@@ -228,6 +229,8 @@ func (c *Connection) DeleteHomescript(id string) error {
 		return nil
 	case 401:
 		return ErrInvalidCredentials
+	case 409:
+		return ErrConflict
 	case 422:
 		return ErrUnprocessableEntity
 	case 403:

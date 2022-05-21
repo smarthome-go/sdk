@@ -16,4 +16,5 @@ var (
 	ErrPermissionDenied    = errors.New("no permission to access this ressource")
 	ErrInvalidSwitch       = errors.New("invalid switch id: no such switch exists")
 	ErrUnprocessableEntity = errors.New("unprocessable entity: invalid or conflicting data")
+	ErrConflict            = errors.New("conflict: modification of data would create data conflicts")
 )
