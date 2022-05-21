@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -251,7 +252,7 @@ func (c *Connection) GetHomescript(id string) (Homescript, error) {
 	if !c.ready {
 		return Homescript{}, ErrNotInitialized
 	}
-	req, err := c.prepareRequest(fmt.Sprintf("/api/homescript/get/%s", id), Get, nil)
+	req, err := c.prepareRequest(fmt.Sprintf("/api/homescript/get/%s", url.PathEscape(id)), Get, nil)
 	if err != nil {
 		return Homescript{}, err
 	}
