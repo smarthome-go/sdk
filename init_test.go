@@ -10,7 +10,9 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r := http.NewServeMux()
+
+	r.HandleFunc("/api/login", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		sessionStore := sessions.NewCookieStore([]byte("key"))
 		session, _ := sessionStore.Get(r, "session")
@@ -18,8 +20,16 @@ func TestInit(t *testing.T) {
 		session.Values["username"] = "test"
 		assert.NoError(t, session.Save(r, w))
 		w.WriteHeader(http.StatusNoContent)
-	}))
+	})
+
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	ts := httptest.NewServer(r)
 	defer ts.Close()
+	// End test server
+
 	c, err := NewConnection(ts.URL, AuthMethodCookie)
 	assert.NoError(t, err)
 	assert.NoError(t, c.Connect("test", "test"))

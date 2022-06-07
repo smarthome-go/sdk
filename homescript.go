@@ -10,21 +10,21 @@ import (
 )
 
 // Is sent to the server in order to provide an equivalent to arguments
-type HomescriptArg struct {
+type HomescriptRunArgRequest struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
 // Is used in order to request execution of a Homescript via its id
 type RunHomescriptByIdRequest struct {
-	Id   string          `json:"id"`
-	Args []HomescriptArg `json:"args"`
+	Id   string                    `json:"id"`
+	Args []HomescriptRunArgRequest `json:"args"`
 }
 
 // Is used in order to request execution of an arbitrary Homescript string
 type RunHomescriptStringRequest struct {
-	Code string          `json:"code"`
-	Args []HomescriptArg `json:"args"`
+	Code string                    `json:"code"`
+	Args []HomescriptRunArgRequest `json:"args"`
 }
 
 // Specifies where the Homescript error occurred
@@ -98,9 +98,9 @@ func (c *Connection) RunHomescriptCode(code string, args map[string]string, time
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	argsTemp := make([]HomescriptArg, 0)
+	argsTemp := make([]HomescriptRunArgRequest, 0)
 	for key, value := range args {
-		argsTemp = append(argsTemp, HomescriptArg{
+		argsTemp = append(argsTemp, HomescriptRunArgRequest{
 			Key:   key,
 			Value: value,
 		})
@@ -160,9 +160,9 @@ func (c *Connection) RunHomescriptById(id string, args map[string]string, timeou
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	argsTemp := make([]HomescriptArg, 0)
+	argsTemp := make([]HomescriptRunArgRequest, 0)
 	for key, value := range args {
-		argsTemp = append(argsTemp, HomescriptArg{
+		argsTemp = append(argsTemp, HomescriptRunArgRequest{
 			Key:   key,
 			Value: value,
 		})
@@ -222,9 +222,9 @@ func (c *Connection) LintHomescriptCode(code string, args map[string]string, tim
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	argsTemp := make([]HomescriptArg, 0)
+	argsTemp := make([]HomescriptRunArgRequest, 0)
 	for key, value := range args {
-		argsTemp = append(argsTemp, HomescriptArg{
+		argsTemp = append(argsTemp, HomescriptRunArgRequest{
 			Key:   key,
 			Value: value,
 		})
@@ -282,9 +282,9 @@ func (c *Connection) LintHomescriptById(id string, args map[string]string, timeo
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	argsTemp := make([]HomescriptArg, 0)
+	argsTemp := make([]HomescriptRunArgRequest, 0)
 	for key, value := range args {
-		argsTemp = append(argsTemp, HomescriptArg{
+		argsTemp = append(argsTemp, HomescriptRunArgRequest{
 			Key:   key,
 			Value: value,
 		})

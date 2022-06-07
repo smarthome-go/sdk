@@ -24,6 +24,10 @@ func TestHomescript(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
+	r.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	r.HandleFunc("/api/homescript/run/live", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		assert.NoError(t, json.NewEncoder(w).Encode(HomescriptResponse{
@@ -46,7 +50,7 @@ func TestHomescript(t *testing.T) {
 	assert.True(t, c.ready)
 
 	// Test Homescript
-	res, err := c.RunHomescript("print('_')", time.Second)
+	res, err := c.RunHomescriptCode("print('_')", make(map[string]string), time.Second)
 	assert.NoError(t, err)
 	assert.Equal(t, HomescriptResponse{
 		Success:  true,

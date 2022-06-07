@@ -138,7 +138,6 @@ func (c *Connection) ListHomescriptWithArgs() ([]HomescriptWithArguments, error)
 		}
 		var parsedBody []HomescriptWithArguments
 		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
-			fmt.Println(err.Error())
 			return nil, ErrReadResponseBody
 		}
 		return parsedBody, nil

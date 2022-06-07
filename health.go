@@ -18,7 +18,7 @@ const (
 // Returns an ENUM type indicating the overall health status of the server
 func (c *Connection) HealthCheck() (status HealthStatus, err error) {
 	u := c.SmarthomeURL
-	u.Path = "health"
+	u.Path = "/health"
 
 	// Check if the base URL is working and the server is reachable
 	res, err := http.Get(u.String())
