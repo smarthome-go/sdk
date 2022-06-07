@@ -74,7 +74,7 @@ func (c *Connection) ListHomescriptArgsOfHmsId(homescriptId string) ([]Homescrip
 	if !c.ready {
 		return nil, ErrNotInitialized
 	}
-	req, err := c.prepareRequest(fmt.Sprintf("/api/homescript/arg/of/%s", url.PathEscape(homescriptId)), Get, nil)
+	req, err := c.prepareRequest(fmt.Sprintf("/api/homescript/arg/list/of/%s", url.PathEscape(homescriptId)), Get, nil)
 	if err != nil {
 		return nil, err
 	}
