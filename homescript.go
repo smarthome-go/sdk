@@ -9,6 +9,24 @@ import (
 	"time"
 )
 
+// Is sent to the server in order to provide an equivalent to arguments
+type HomescriptArg struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// Is used in order to request execution of a Homescript via its id
+type RunHomescriptByIdRequest struct {
+	Id   string          `json:"id"`
+	Args []HomescriptArg `json:"args"`
+}
+
+// Is used in order to request execution of an arbitrary Homescript string
+type RunHomescriptStringRequest struct {
+	Code string          `json:"code"`
+	Args []HomescriptArg `json:"args"`
+}
+
 // Specifies where the Homescript error occurred
 type ErrorLocation struct {
 	Filename string `json:"filename"`
@@ -61,7 +79,7 @@ type HomescriptRequest struct {
 	MDIcon              string `json:"mdIcon"`
 }
 
-// Executes a string of homescript code on the Smarthome-server
+// Executes a string of Homescript code on the Smarthome-server
 // Returns a Homescript-response and an error
 // The error is meant to indicate a failure of communication, not a failure of execution
 // Normally, a `ErrConnFailed` indicates that the server is not reachable, however if other requests work
@@ -76,14 +94,20 @@ type HomescriptRequest struct {
 - PrepareRequest errors
 - Unknown
 */
-func (c *Connection) RunHomescript(code string, timeout time.Duration) (response HomescriptResponse, err error) {
+func (c *Connection) RunHomescriptCode(code string, args map[string]string, timeout time.Duration) (response HomescriptResponse, err error) {
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	req, err := c.prepareRequest("/api/homescript/run/live", Post, struct {
-		Code string `json:"code"`
-	}{
+	argsTemp := make([]HomescriptArg, 0)
+	for key, value := range args {
+		argsTemp = append(argsTemp, HomescriptArg{
+			Key:   key,
+			Value: value,
+		})
+	}
+	req, err := c.prepareRequest("/api/homescript/run/live", Post, RunHomescriptStringRequest{
 		Code: code,
+		Args: argsTemp,
 	})
 	if err != nil {
 		return HomescriptResponse{}, err
@@ -117,9 +141,11 @@ func (c *Connection) RunHomescript(code string, timeout time.Duration) (response
 	return HomescriptResponse{}, fmt.Errorf("unknown response code: %s", res.Status)
 }
 
-// Lints a string of homescript code on the Smarthome-server
+// Runs Homescript by id on the Smarthome-server
 // Returns a Homescript-response and an error
-// The error is meant to indicate a failure of communication, not a failure of linting
+// The error is meant to indicate a failure of communication, not a failure of execution
+// Normally, a `ErrConnFailed` indicates that the server is not reachable, however if other requests work
+// a `ErrConnFailed` could indicate a request-timeout. In this case, check if you need to increase the timeout
 /** Errors
 - nil
 - ErrNotInitialized
@@ -130,14 +156,20 @@ func (c *Connection) RunHomescript(code string, timeout time.Duration) (response
 - PrepareRequest errors
 - Unknown
 */
-func (c *Connection) LintHomescript(code string, timeout time.Duration) (response HomescriptResponse, err error) {
+func (c *Connection) RunHomescriptById(id string, args map[string]string, timeout time.Duration) (response HomescriptResponse, err error) {
 	if !c.ready {
 		return HomescriptResponse{}, ErrNotInitialized
 	}
-	req, err := c.prepareRequest("/api/homescript/lint/live", Post, struct {
-		Code string `json:"code"`
-	}{
-		Code: code,
+	argsTemp := make([]HomescriptArg, 0)
+	for key, value := range args {
+		argsTemp = append(argsTemp, HomescriptArg{
+			Key:   key,
+			Value: value,
+		})
+	}
+	req, err := c.prepareRequest("/api/homescript/run", Post, RunHomescriptByIdRequest{
+		Id:   id,
+		Args: argsTemp,
 	})
 	if err != nil {
 		return HomescriptResponse{}, err
@@ -152,7 +184,7 @@ func (c *Connection) LintHomescript(code string, timeout time.Duration) (respons
 	defer res.Body.Close()
 
 	switch res.StatusCode {
-	// Either the script has beem linted successfully or errors were detected
+	// Either the script has executed successfully or it has terminated abnormally
 	case 200, 500:
 		resBody, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -167,6 +199,130 @@ func (c *Connection) LintHomescript(code string, timeout time.Duration) (respons
 		return HomescriptResponse{}, ErrInvalidCredentials
 	case 403:
 		return HomescriptResponse{}, ErrPermissionDenied
+	case 422:
+		return HomescriptResponse{}, ErrUnprocessableEntity
+	}
+	return HomescriptResponse{}, fmt.Errorf("unknown response code: %s", res.Status)
+}
+
+// Lints a string of Homescript code on the Smarthome-server
+// Returns a Homescript-response and an error
+// The error is meant to indicate a failure of communication, not a failure of linting
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- Unknown
+*/
+func (c *Connection) LintHomescriptCode(code string, args map[string]string, timeout time.Duration) (response HomescriptResponse, err error) {
+	if !c.ready {
+		return HomescriptResponse{}, ErrNotInitialized
+	}
+	argsTemp := make([]HomescriptArg, 0)
+	for key, value := range args {
+		argsTemp = append(argsTemp, HomescriptArg{
+			Key:   key,
+			Value: value,
+		})
+	}
+	req, err := c.prepareRequest("/api/homescript/lint/live", Post, RunHomescriptStringRequest{
+		Code: code,
+		Args: argsTemp,
+	})
+	if err != nil {
+		return HomescriptResponse{}, err
+	}
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return HomescriptResponse{}, ErrConnFailed
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	// Either the script has been linted successfully or errors were detected
+	case 200, 500:
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return HomescriptResponse{}, ErrReadResponseBody
+		}
+		var parsedBody HomescriptResponse
+		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
+			return HomescriptResponse{}, ErrReadResponseBody
+		}
+		return parsedBody, nil
+	case 401:
+		return HomescriptResponse{}, ErrInvalidCredentials
+	case 403:
+		return HomescriptResponse{}, ErrPermissionDenied
+	}
+	return HomescriptResponse{}, fmt.Errorf("unknown response code: %s", res.Status)
+}
+
+// Lints a Homescript by id
+// Returns a Homescript-response and an error
+// The error is meant to indicate a failure of communication, not a failure of linting
+/** Errors
+- nil
+- ErrNotInitialized
+- ErrConnFailed
+- ErrReadResponseBody
+- ErrInvalidCredentials
+- ErrPermissionDenied
+- PrepareRequest errors
+- Unknown
+*/
+func (c *Connection) LintHomescriptById(id string, args map[string]string, timeout time.Duration) (response HomescriptResponse, err error) {
+	if !c.ready {
+		return HomescriptResponse{}, ErrNotInitialized
+	}
+	argsTemp := make([]HomescriptArg, 0)
+	for key, value := range args {
+		argsTemp = append(argsTemp, HomescriptArg{
+			Key:   key,
+			Value: value,
+		})
+	}
+	req, err := c.prepareRequest("/api/homescript/lint", Post, RunHomescriptByIdRequest{
+		Id:   id,
+		Args: argsTemp,
+	})
+	if err != nil {
+		return HomescriptResponse{}, err
+	}
+	client := &http.Client{
+		Timeout: timeout,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return HomescriptResponse{}, ErrConnFailed
+	}
+	defer res.Body.Close()
+
+	switch res.StatusCode {
+	// Either the script has been linted successfully or errors were detected
+	case 200, 500:
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return HomescriptResponse{}, ErrReadResponseBody
+		}
+		var parsedBody HomescriptResponse
+		if err := json.Unmarshal(resBody, &parsedBody); err != nil {
+			return HomescriptResponse{}, ErrReadResponseBody
+		}
+		return parsedBody, nil
+	case 401:
+		return HomescriptResponse{}, ErrInvalidCredentials
+	case 403:
+		return HomescriptResponse{}, ErrPermissionDenied
+	case 422:
+		return HomescriptResponse{}, ErrUnprocessableEntity
 	}
 	return HomescriptResponse{}, fmt.Errorf("unknown response code: %s", res.Status)
 
