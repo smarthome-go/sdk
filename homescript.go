@@ -39,6 +39,7 @@ type Homescript struct {
 	Data  HomescriptData `json:"data"`
 }
 
+// The most important data which a Homescript contains
 type HomescriptData struct {
 	Id                  string `json:"id"`
 	Name                string `json:"name"`
