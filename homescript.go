@@ -45,6 +45,7 @@ type HomescriptError struct {
 // Under normal conditions, Smarthome will return such a response
 type HomescriptResponse struct {
 	Success  bool              `json:"success"`
+	Id       string            `json:"id"`
 	Exitcode int               `json:"exitCode"`
 	Message  string            `json:"message"`
 	Output   string            `json:"output"`
