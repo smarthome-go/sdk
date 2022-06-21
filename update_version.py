@@ -4,7 +4,7 @@
 import re
 
 main_go_path = "main.go"
-changelog_path = "./docs/CHANGELOG.md"
+changelog_path = "CHANGELOG.md"
 makefile_path = "Makefile"
 
 with open(main_go_path, "r") as main_go:
