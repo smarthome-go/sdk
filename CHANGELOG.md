@@ -1,6 +1,3 @@
-## Changelog for v0.13.0
+## Changelog for v0.14.0
 
-- Added `Version` function which returns the Server's version
-- Added `id` to Homescript execution /lint response
-- Added version check on connection initialization
-- Removed Healthcheck on connection initialization
+- Added version to Smarthome connection instance attributes 
