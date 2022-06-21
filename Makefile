@@ -1,4 +1,4 @@
-version := 0.0.45
+version := 0.13.0
 
 test:
 	go test -v -race .
