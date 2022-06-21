@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+
+	"github.com/Masterminds/semver"
 )
 
 // Creates a new connection
@@ -29,14 +31,30 @@ func (c *Connection) Connect(username string, password string) error {
 	c.Username = username
 	c.Password = password
 
-	status, err := c.HealthCheck()
+	version, err := c.Version()
 	if err != nil {
 		return err
 	}
-	// Check if the healthcheck failed to an extend that authentication will not be possible
-	if status == StatusDegraded || status == StatusUnknown {
-		return ErrServiceUnavailable
+	// Check Smarthome version compatibility
+	supportedV, err := semver.NewConstraint(fmt.Sprintf(">= %s", MinSmarthomeVersion))
+	if err != nil {
+		// This must not happen (tests)
+		// If this happens, the best thing is to abort the connection
+		return ErrInvalidVersion
 	}
+
+	currentV, err := semver.NewVersion(version.Version)
+	if err != nil {
+		// This must also not happen
+		// If this happens, the best thing is to abort the connection
+		return ErrInvalidVersion
+	}
+
+	if !supportedV.Check(currentV) {
+		// Would not be supported
+		return ErrUnsupportedVersion
+	}
+
 	// If the connection does not use authentication, it can be marked as ready
 	if c.AuthMethod == AuthMethodNone {
 		c.ready = true

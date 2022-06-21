@@ -17,4 +17,6 @@ var (
 	ErrInvalidSwitch       = errors.New("invalid switch id: no such switch exists")
 	ErrUnprocessableEntity = errors.New("unprocessable entity: invalid or conflicting data")
 	ErrConflict            = errors.New("conflict: modification of data would create data conflicts")
+	ErrUnsupportedVersion  = errors.New("this Smarthome version is not supported by the SDK")
+	ErrInvalidVersion      = errors.New("encountered unparseable SemVer version")
 )
