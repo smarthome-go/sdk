@@ -55,6 +55,10 @@ func (c *Connection) Connect(username string, password string) error {
 		return ErrUnsupportedVersion
 	}
 
+	// Set the version in the connection
+	c.SmarthomeVersion = version.Version
+	c.SmarthomeGoVersion = version.GoVersion
+
 	// If the connection does not use authentication, it can be marked as ready
 	if c.AuthMethod == AuthMethodNone {
 		c.ready = true

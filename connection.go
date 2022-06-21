@@ -47,4 +47,8 @@ type Connection struct {
 	SessionCookie *http.Cookie
 	// Used internally to specify if the connection is ready to be used
 	ready bool
+	// Stores the version of the Smarthome server in order to avoid using the `Version` function multiple times
+	SmarthomeVersion string
+	// Stores the GO version on which the Smarthome server runs on
+	SmarthomeGoVersion string
 }
