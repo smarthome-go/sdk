@@ -25,17 +25,29 @@ type JobResult struct {
 
 // Is returned when the debug information is requested
 type DebugInfoData struct {
-	ServerVersion          string      `json:"version"`
-	DatabaseOnline         bool        `json:"databaseOnline"`
-	DatabaseStats          DBStatus    `json:"databaseStats"`
-	CpuCores               uint8       `json:"cpuCores"`
-	Goroutines             uint16      `json:"goroutines"`
-	GoVersion              string      `json:"goVersion"`
-	MemoryUsage            uint16      `json:"memoryUsage"`
-	PowerJobCount          uint16      `json:"powerJobCount"`
-	PowerJobWithErrorCount uint16      `json:"lastPowerJobErrorCount"`
-	PowerJobs              []PowerJob  `json:"powerJobs"`
-	PowerJobResults        []JobResult `json:"powerJobResults"`
+	ServerVersion          string         `json:"version"`
+	DatabaseOnline         bool           `json:"databaseOnline"`
+	DatabaseStats          DBStatus       `json:"databaseStats"`
+	CpuCores               uint8          `json:"cpuCores"`
+	Goroutines             uint16         `json:"goroutines"`
+	GoVersion              string         `json:"goVersion"`
+	MemoryUsage            uint16         `json:"memoryUsage"`
+	PowerJobCount          uint16         `json:"powerJobCount"`
+	PowerJobWithErrorCount uint16         `json:"lastPowerJobErrorCount"`
+	PowerJobs              []PowerJob     `json:"powerJobs"`
+	PowerJobResults        []JobResult    `json:"powerJobResults"`
+	HardwareNodesCount     uint16         `json:"hardwareNodesCount"`
+	HardwareNodesOnline    uint16         `json:"hardwareNodesOnline"`
+	HardwareNodesEnabled   uint16         `json:"hardwareNodesEnabled"`
+	HardwareNodes          []HardwareNode `json:"hardwareNodes"`
+}
+
+type HardwareNode struct {
+	Name    string `json:"name"`
+	Online  bool   `json:"online"`
+	Enabled bool   `json:"enabled"`
+	Url     string `json:"url"`
+	Token   string `json:"token"`
 }
 
 // Retrieves debugging information from the smarthome server
