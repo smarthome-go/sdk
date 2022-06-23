@@ -35,8 +35,14 @@ func (c *Connection) Connect(username string, password string) error {
 	if err != nil {
 		return err
 	}
+
+	// Set the version in the connection
+	// Is already set here so it can be used in error messages as `c.SmarthomeVersion`
+	c.SmarthomeVersion = version.Version
+	c.SmarthomeGoVersion = version.GoVersion
+
 	// Check Smarthome version compatibility
-	supportedV, err := semver.NewConstraint(fmt.Sprintf(">= %s", MinSmarthomeVersion))
+	supportedV, err := semver.NewConstraint(fmt.Sprintf("^%s", MinSmarthomeVersion))
 	if err != nil {
 		// This must not happen (tests)
 		// If this happens, the best thing is to abort the connection
@@ -54,10 +60,6 @@ func (c *Connection) Connect(username string, password string) error {
 		// Would not be supported
 		return ErrUnsupportedVersion
 	}
-
-	// Set the version in the connection
-	c.SmarthomeVersion = version.Version
-	c.SmarthomeGoVersion = version.GoVersion
 
 	// If the connection does not use authentication, it can be marked as ready
 	if c.AuthMethod == AuthMethodNone {
