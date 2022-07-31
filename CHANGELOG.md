@@ -1,3 +1,3 @@
-## Changelog for v0.14.0
+## Changelog for v0.16.0
 
-- Added version to Smarthome connection instance attributes 
+- Added HMS job count to debug info
