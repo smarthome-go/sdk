@@ -40,6 +40,7 @@ type DebugInfoData struct {
 	HardwareNodesOnline    uint16         `json:"hardwareNodesOnline"`
 	HardwareNodesEnabled   uint16         `json:"hardwareNodesEnabled"`
 	HardwareNodes          []HardwareNode `json:"hardwareNodes"`
+	HomescriptJobCount     uint           `json:"homescriptJobCount"`
 }
 
 type HardwareNode struct {
