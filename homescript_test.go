@@ -43,10 +43,10 @@ func TestHomescript(t *testing.T) {
 	defer ts.Close()
 
 	// Authenticate
-	c, err := NewConnection(ts.URL, AuthMethodCookie)
+	c, err := NewConnection(ts.URL, AuthMethodCookiePassword)
 	assert.NoError(t, err)
-	assert.NoError(t, c.Connect("test", "test"))
-	assert.Equal(t, c.SessionCookie.Name, "session")
+	assert.NoError(t, c.UserLogin("test", "test"))
+	assert.Equal(t, c.sessionCookie.Name, "session")
 	assert.True(t, c.ready)
 
 	// Test Homescript

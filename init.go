@@ -13,24 +13,59 @@ import (
 // Creates a new connection
 // First argument specifies the base URL of the target Smarthome-server
 // Second argument specifies how to handle authentication
-func NewConnection(smarthomeURL string, authMethod AuthMethod) (*Connection, error) {
+func NewConnection(
+	smarthomeURL string,
+	authMethod AuthMethod,
+) (*Connection, error) {
 	u, err := url.Parse(smarthomeURL)
 	if err != nil {
 		return nil, ErrInvalidURL
 	}
+	// Create and return a client
 	return &Connection{
 		SmarthomeURL:  u,
-		AuthMethod:    authMethod,
-		SessionCookie: &http.Cookie{},
+		authMethod:    authMethod,
+		sessionCookie: &http.Cookie{},
 	}, nil
+}
+
+// Can be used to connect when the authentication method is set to `None`
+func (c *Connection) Connect() error {
+	if c.authMethod != AuthMethodNone {
+		return ErrInvalidConnectionFunction
+	}
+	// Call the helper function
+	return c.connectHelper()
+}
+
+// Can be used to connect when the authentication method is set to `Password-XXX`
+func (c *Connection) UserLogin(username string, password string) error {
+	if c.authMethod != AuthMethodQueryPassword && c.authMethod != AuthMethodCookiePassword {
+		return ErrInvalidConnectionFunction
+	}
+	// Set the internal credentials using the parameters
+	c.userPasswordData.Username = username
+	c.userPasswordData.Password = password
+	// Call the helper function
+	return c.connectHelper()
+}
+
+// Can be used to connect when the authentication method is set to `Token-XXX`
+func (c *Connection) TokenLogin(token string) error {
+	if c.authMethod != AuthMethodQueryToken && c.authMethod != AuthMethodCookieToken {
+		return ErrInvalidConnectionFunction
+	}
+	// Set the internal token to the parameter
+	c.token = token
+	// Call the helper function
+	return c.connectHelper()
 }
 
 // If the authentication mode is set to `AuthMethodNone`, both arguments can be set to nil
 // Otherwise, username and password are required to login
-func (c *Connection) Connect(username string, password string) error {
-	c.Username = username
-	c.Password = password
+func (c *Connection) connectHelper() error {
 
+	// Retrieve the server's version
 	version, err := c.Version()
 	if err != nil {
 		return err
@@ -56,61 +91,97 @@ func (c *Connection) Connect(username string, password string) error {
 		return ErrInvalidVersion
 	}
 
+	// Perform the version comparison
 	if !supportedV.Check(currentV) {
 		// Would not be supported
 		return ErrUnsupportedVersion
 	}
 
+	switch c.authMethod {
 	// If the connection does not use authentication, it can be marked as ready
-	if c.AuthMethod == AuthMethodNone {
+	case AuthMethodNone:
 		c.ready = true
 		return nil
-	}
-	// If the authentication mode is set to `AuthMethodQuery`, validate the user's credentials and mark the connection as ready
-	if c.AuthMethod == AuthMethodQuery {
+
+	// If the authentication mode is set to `AuthMethodQueryToken`, validate the token and mark the connection as ready
+	case AuthMethodQueryToken:
+		fallthrough
+	// If the authentication mode is set to `AuthMethodQueryPassword`, validate the user's credentials and mark the connection as ready
+	case AuthMethodQueryPassword:
 		_, err := c.doLogin()
 		if err != nil {
 			return err
 		}
 		c.ready = true
 		return nil
-	}
-	// If the authentication mode is set to `AuthMethodCookie`, validate the user's credentials and save the cookie
-	if c.AuthMethod == AuthMethodCookie {
+
+	// If the authentication mode is set to `AuthMethodCookieToken`, use the token to obtain a session cookie
+	case AuthMethodCookieToken:
+		fallthrough
+	// If the authentication mode is set to `AuthMethodCookiePassword`, use the user's credentials to obtain a session cookie
+	case AuthMethodCookiePassword:
 		cookie, err := c.doLogin()
 		if err != nil {
 			return err
 		}
-		c.SessionCookie = cookie
+		c.sessionCookie = cookie
 		c.ready = true
 		return nil
+
+	default:
+		panic("unreachable")
 	}
-	// Unreachable
-	return nil
 }
 
 // Used internally to send a login request
-// When the authentication mode is set to `AuthMethodCookie`, the response cookie is saved
-// However, for `AuthMethodQuery`, it serves the purpose of validating the provided credentials beforehand
+// When the authentication mode is set to `AuthMethodCookie-XXX`, the response cookie is saved
+// However, for `AuthMethodQuery-XXX`, it serves the purpose of validating the provided credentials beforehand
 // If the authentication mode is sey set to `AuthMethodNone`, the function call is omitted
 func (c *Connection) doLogin() (*http.Cookie, error) {
 	u := c.SmarthomeURL
+	// The default path is the user login
 	u.Path = "/api/login"
+	// If authentication should use a token, change the path
+	if c.authMethod == AuthMethodQueryToken || c.authMethod == AuthMethodCookieToken {
+		u.Path = "/api/login/token"
+	}
 
-	body, err := json.Marshal(struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}{
-		Username: c.Username,
-		Password: c.Password,
-	})
+	var loginBody []byte
+	var loginBodyErr error
+
+	if c.authMethod == AuthMethodQueryPassword || c.authMethod == AuthMethodCookiePassword {
+		loginBody, loginBodyErr = json.Marshal(struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}{
+			Username: c.userPasswordData.Username,
+			Password: c.userPasswordData.Password,
+		})
+		if loginBodyErr != nil {
+			return nil, loginBodyErr
+		}
+	} else if c.authMethod == AuthMethodQueryToken || c.authMethod == AuthMethodCookieToken {
+		loginBody, loginBodyErr = json.Marshal(struct {
+			Token string `json:"token"`
+		}{
+			Token: c.token,
+		})
+		if loginBodyErr != nil {
+			return nil, loginBodyErr
+		}
+	} else {
+		panic("unreachable")
+	}
+	// Create a login request
+	r, err := http.NewRequest(
+		http.MethodPost,
+		u.String(),
+		bytes.NewBuffer(loginBody),
+	)
 	if err != nil {
 		return nil, err
 	}
-	r, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
+	// Perform the login request
 	client := &http.Client{}
 	res, err := client.Do(r)
 	if err != nil {

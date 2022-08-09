@@ -30,21 +30,15 @@ func TestInit(t *testing.T) {
 	defer ts.Close()
 	// End test server
 
-	c, err := NewConnection(ts.URL, AuthMethodCookie)
+	c, err := NewConnection(ts.URL, AuthMethodCookiePassword)
 	assert.NoError(t, err)
-	assert.NoError(t, c.Connect("test", "test"))
-	assert.Equal(t, c.SessionCookie.Name, "session")
-	assert.True(t, c.ready)
-
-	c2, err := NewConnection(ts.URL, AuthMethodNone)
-	assert.NoError(t, err)
-	assert.NoError(t, c2.Connect("test", "test"))
-	assert.Equal(t, &http.Cookie{}, c2.SessionCookie)
+	assert.NoError(t, c.UserLogin("test", "test"))
+	assert.Equal(t, c.sessionCookie.Name, "session")
 	assert.True(t, c.ready)
 
 	ts.Close()
 	c3, err := NewConnection("http://not-reachable.local", AuthMethodNone)
 	assert.NoError(t, err)
-	assert.EqualError(t, c3.Connect("", ""), ErrConnFailed.Error())
-	assert.Error(t, c3.Connect("", ""))
+	assert.Error(t, c3.Connect())
+	assert.EqualError(t, c3.Connect(), ErrConnFailed.Error())
 }

@@ -22,11 +22,15 @@ func (c *Connection) prepareRequest(path string, method HTTPMethod, body interfa
 	u := c.SmarthomeURL
 	u.Path = path
 
-	// If the authentication mode is set to `AuthMethodQuery`, encode username and password and attach it to the URL
-	if c.AuthMethod == AuthMethodQuery {
+	// If the authentication mode is set to `AuthMethodQueryPassword`, encode username and password and attach it to the URL
+	if c.authMethod == AuthMethodQueryPassword {
 		query := u.Query()
-		query.Set("username", c.Username)
-		query.Set("password", c.Password)
+		query.Set("username", c.userPasswordData.Username)
+		query.Set("password", c.userPasswordData.Password)
+		u.RawQuery = query.Encode()
+	} else if c.authMethod == AuthMethodQueryToken {
+		query := u.Query()
+		query.Set("token", c.token)
 		u.RawQuery = query.Encode()
 	}
 
@@ -46,9 +50,9 @@ func (c *Connection) prepareRequest(path string, method HTTPMethod, body interfa
 		return nil, err
 	}
 
-	// If the authentication mode is set to `AuthMethodCookie`, add the cookie to the request
-	if c.AuthMethod == AuthMethodCookie {
-		r.AddCookie(c.SessionCookie)
+	// If the authentication mode is set to `AuthMethodCookiePassword`, add the cookie to the request
+	if c.authMethod == AuthMethodCookiePassword {
+		r.AddCookie(c.sessionCookie)
 	}
 
 	// Set `Content-Type` and `User-Agent`
