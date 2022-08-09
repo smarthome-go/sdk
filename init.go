@@ -44,8 +44,8 @@ func (c *Connection) UserLogin(username string, password string) error {
 		return ErrInvalidConnectionFunction
 	}
 	// Set the internal credentials using the parameters
-	c.userPasswordData.Username = username
-	c.userPasswordData.Password = password
+	c.credStore.Username = username
+	c.credStore.Password = password
 	// Call the helper function
 	return c.connectHelper()
 }
@@ -56,7 +56,7 @@ func (c *Connection) TokenLogin(token string) error {
 		return ErrInvalidConnectionFunction
 	}
 	// Set the internal token to the parameter
-	c.token = token
+	c.credStore.Token = token
 	// Call the helper function
 	return c.connectHelper()
 }
@@ -154,8 +154,8 @@ func (c *Connection) doLogin() (*http.Cookie, error) {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		}{
-			Username: c.userPasswordData.Username,
-			Password: c.userPasswordData.Password,
+			Username: c.credStore.Username,
+			Password: c.credStore.Password,
 		})
 		if loginBodyErr != nil {
 			return nil, loginBodyErr
@@ -164,7 +164,7 @@ func (c *Connection) doLogin() (*http.Cookie, error) {
 		loginBody, loginBodyErr = json.Marshal(struct {
 			Token string `json:"token"`
 		}{
-			Token: c.token,
+			Token: c.credStore.Token,
 		})
 		if loginBodyErr != nil {
 			return nil, loginBodyErr

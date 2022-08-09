@@ -25,12 +25,12 @@ func (c *Connection) prepareRequest(path string, method HTTPMethod, body interfa
 	// If the authentication mode is set to `AuthMethodQueryPassword`, encode username and password and attach it to the URL
 	if c.authMethod == AuthMethodQueryPassword {
 		query := u.Query()
-		query.Set("username", c.userPasswordData.Username)
-		query.Set("password", c.userPasswordData.Password)
+		query.Set("username", c.credStore.Username)
+		query.Set("password", c.credStore.Password)
 		u.RawQuery = query.Encode()
 	} else if c.authMethod == AuthMethodQueryToken {
 		query := u.Query()
-		query.Set("token", c.token)
+		query.Set("token", c.credStore.Token)
 		u.RawQuery = query.Encode()
 	}
 

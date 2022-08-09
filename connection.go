@@ -35,10 +35,8 @@ const (
 )
 
 type Connection struct {
-	// Will be used when `LoginMethodUserUserPassword` is set
-	userPasswordData userPasswordData
-	// Will be used when `LoginMethodToken` is set
-	token string
+	// Stores credentials used by the SDK
+	credStore credStore
 	// The base URL which will be used to create all request
 	SmarthomeURL *url.URL
 	// Stores which authentication mode will be used
@@ -56,11 +54,15 @@ type Connection struct {
 }
 
 // Saves the username - password combination
-type userPasswordData struct {
-	// The username which will be used if `AuthMethodCookie` or `AuthMethodQuery` is set
-	// If `AuthMethodCookie` is used, the username will only be used in the login function
+type credStore struct {
+	/** Token authentication
+	- Will be used when `AuthMethod-XX-Token` is set
+	*/
+	Token string
+
+	/** User authentication
+	- Will be used when `AuthMethod-XXX-Password` is set
+	*/
 	Username string
-	// The password which will be used if `AuthMethodCookie` or `AuthMethodQuery` is set
-	// If `AuthMethodCookie` is used, the password will only be used in the login function
 	Password string
 }
