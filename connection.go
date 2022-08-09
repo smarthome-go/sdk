@@ -11,7 +11,7 @@ type AuthMethod uint8
 const (
 	/** No authentication will send every request without any form of user-authentication
 	- Can be used in a context which does not require authentication, for example, listing the switches
-	- Not reccomended in most cases due to the strict data protection of Smarthome
+	- Not recommended in most cases due to the strict data protection of Smarthome
 	*/
 	AuthMethodNone AuthMethod = iota
 
