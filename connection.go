@@ -45,6 +45,8 @@ type Connection struct {
 	// The store is written to once in the login function
 	// Every request will access the store in order to include the cookie in the request
 	sessionCookie *http.Cookie
+	// Stores the token's label which was received from the server at login
+	tokenClientName string
 	// Used internally to specify if the connection is ready to be used
 	ready bool
 	// Stores the version of the Smarthome server in order to avoid using the `Version` function multiple times

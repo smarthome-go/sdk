@@ -5,7 +5,7 @@ import "errors"
 var (
 	ErrNotInitialized            = errors.New("action failed: initialize connection first")
 	ErrInvalidURL                = errors.New("invalid url: the url could not be parsed")
-	ErrInvalidConnectionFunction = errors.New("the requested connection function cannot be used with the specified authentication mode")
+	ErrInvalidFunctionAuthMethod = errors.New("the requested function cannot be used with the specified authentication mode")
 	ErrConnFailed                = errors.New("connection failed: request failed due to network issues")
 	ErrServiceUnavailable        = errors.New("request failed: smarthome is currently unavailable")
 	ErrInternalServerError       = errors.New("request failed: smarthome failed internally")
