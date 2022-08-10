@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -86,7 +86,7 @@ func (c *Connection) ListHomescriptArgsOfHmsId(homescriptId string) ([]Homescrip
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}
@@ -132,7 +132,7 @@ func (c *Connection) ListHomescriptWithArgs() ([]HomescriptWithArguments, error)
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}

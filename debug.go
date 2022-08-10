@@ -2,7 +2,7 @@ package sdk
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -77,7 +77,7 @@ func (c *Connection) GetDebugInfo() (info DebugInfoData, err error) {
 	}
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return DebugInfoData{}, ErrReadResponseBody
 		}

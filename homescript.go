@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -125,7 +125,7 @@ func (c *Connection) RunHomescriptCode(code string, args map[string]string, time
 	switch res.StatusCode {
 	// Either the script has executed successfully or it has terminated abnormally
 	case 200, 500:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return HomescriptResponse{}, ErrReadResponseBody
 		}
@@ -187,7 +187,7 @@ func (c *Connection) RunHomescriptById(id string, args map[string]string, timeou
 	switch res.StatusCode {
 	// Either the script has executed successfully or it has terminated abnormally
 	case 200, 500:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return HomescriptResponse{}, ErrReadResponseBody
 		}
@@ -249,7 +249,7 @@ func (c *Connection) LintHomescriptCode(code string, args map[string]string, tim
 	switch res.StatusCode {
 	// Either the script has been linted successfully or errors were detected
 	case 200, 500:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return HomescriptResponse{}, ErrReadResponseBody
 		}
@@ -309,7 +309,7 @@ func (c *Connection) LintHomescriptById(id string, args map[string]string, timeo
 	switch res.StatusCode {
 	// Either the script has been linted successfully or errors were detected
 	case 200, 500:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return HomescriptResponse{}, ErrReadResponseBody
 		}
@@ -479,7 +479,7 @@ func (c *Connection) GetHomescript(id string) (Homescript, error) {
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return Homescript{}, ErrReadResponseBody
 		}
@@ -525,7 +525,7 @@ func (c *Connection) ListHomescript() ([]Homescript, error) {
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}

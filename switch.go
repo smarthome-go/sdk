@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -42,7 +42,7 @@ func (c *Connection) GetPersonalSwitches() (switches []Switch, err error) {
 	}
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}
@@ -83,7 +83,7 @@ func (c *Connection) GetAllSwitches() (switches []Switch, err error) {
 	}
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}

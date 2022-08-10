@@ -3,7 +3,7 @@ package sdk
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -55,7 +55,7 @@ func (c *Connection) ListAutomations() ([]Automation, error) {
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		resBody, err := ioutil.ReadAll(res.Body)
+		resBody, err := io.ReadAll(res.Body)
 		if err != nil {
 			return nil, ErrReadResponseBody
 		}
