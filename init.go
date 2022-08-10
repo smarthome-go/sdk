@@ -131,12 +131,13 @@ func (c *Connection) connectHelper() error {
 		return nil
 	// If the authentication mode is set to `AuthMethodCookieToken`, use the token to obtain a session cookie
 	case AuthMethodCookieToken:
-		_, tokenData, err := c.doLogin()
+		cookie, tokenData, err := c.doLogin()
 		if err != nil {
 			return err
 		}
 		c.tokenClientName = tokenData.TokenLabel
 		c.credStore.Username = tokenData.Username
+		c.sessionCookie = cookie
 		c.ready = true
 		return nil
 	// If the authentication mode is set to `AuthMethodCookiePassword`, use the user's credentials to obtain a session cookie

@@ -50,8 +50,8 @@ func (c *Connection) prepareRequest(path string, method HTTPMethod, body interfa
 		return nil, err
 	}
 
-	// If the authentication mode is set to `AuthMethodCookiePassword`, add the cookie to the request
-	if c.authMethod == AuthMethodCookiePassword {
+	// If the authentication mode is set to `AuthMethodCookiePassword` or `AuthMethodCookieToken`, add the cookie to the request
+	if c.authMethod == AuthMethodCookiePassword || c.authMethod == AuthMethodCookieToken {
 		r.AddCookie(c.sessionCookie)
 	}
 
