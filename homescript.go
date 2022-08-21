@@ -67,6 +67,7 @@ type HomescriptData struct {
 	SchedulerEnabled    bool   `json:"schedulerEnabled"`
 	Code                string `json:"code"`
 	MDIcon              string `json:"mdIcon"`
+	Workspace           string `json:"workspace"`
 }
 
 // Used for creating a new script or modifying an existing one
