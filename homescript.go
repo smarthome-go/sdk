@@ -79,6 +79,7 @@ type HomescriptRequest struct {
 	SchedulerEnabled    bool   `json:"schedulerEnabled"`
 	Code                string `json:"code"`
 	MDIcon              string `json:"mdIcon"`
+	Workspace           string `json:"workspace"`
 }
 
 // Executes a string of Homescript code on the Smarthome-server
